@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "281695074891",
+    "project_id": "onepiecedle-32b92",
+    "storage_bucket": "onepiecedle-32b92.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:281695074891:android:6f9c0d3c47a87a3628ebce",
+        "android_client_info": {
+          "package_name": "com.example.onepieceapp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiT6ao6GA0Uxn4cBRQUtpy8YlZV2hvFm0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
