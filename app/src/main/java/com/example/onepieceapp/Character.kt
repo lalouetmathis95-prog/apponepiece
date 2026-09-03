@@ -12,7 +12,7 @@ import java.io.InputStreamReader
  * plus le niveau est élevé, plus le personnage est connu/facile à deviner).
  */
 data class Character(
-    val name: String,
+    override val name: String,
     val epithet: String,
     val fruitName: String,
     val fruitType: String,
@@ -21,8 +21,15 @@ data class Character(
     val bountyValue: Long,
     val affiliation: String,
     val heightMeters: Double?,
-    val difficulty: Int
-)
+    override val difficulty: Int,
+    /** Nom de fichier de portrait (ex. "monkey_d_luffy.jpg"), récupéré par
+     * datagen/fetch_images.py puis fusionné dans ce fichier -- null tant
+     * qu'aucune image n'a été trouvée pour ce personnage. */
+    override val imageFile: String? = null
+) : Guessable {
+    override val subtitle: String get() = epithet
+    override val imageFolder: String get() = "images"
+}
 
 object CharacterRepository {
 
@@ -50,37 +57,12 @@ object CharacterRepository {
                     bountyValue = obj.optLong("bountyValue", 0L),
                     affiliation = obj.getString("affiliation"),
                     heightMeters = if (obj.isNull("heightMeters")) null else obj.optDouble("heightMeters"),
-                    difficulty = obj.optInt("difficulty", 0)
+                    difficulty = obj.optInt("difficulty", 0),
+                    imageFile = if (obj.has("imageFile") && !obj.isNull("imageFile")) obj.getString("imageFile") else null
                 )
             )
         }
         cache = result
         return result
     }
-}
-
-/**
- * characters.json contient la liste complète : la première moitié en français,
- * la seconde moitié (mêmes personnages, même ordre) en anglais — les deux
- * langues restent donc toujours strictement séparées au sein d'une même partie.
- */
-fun charactersForLang(all: List<Character>, lang: Lang): List<Character> {
-    val mid = all.size / 2
-    return if (lang == Lang.FR) all.subList(0, mid) else all.subList(mid, all.size)
-}
-
-/**
- * Positions (dans la moitié de langue, 0 jusqu'à mid) éligibles au mode Quotidien
- * (difficulté >= 3). Une position désigne le même personnage quelle que soit la
- * langue, ce qui permet de choisir un seul personnage du jour côté Firestore et
- * de l'afficher dans la langue de chaque joueur.
- */
-fun dailyPoolPositions(all: List<Character>): List<Int> {
-    val mid = all.size / 2
-    return (0 until mid).filter { all[it].difficulty >= 3 }
-}
-
-fun characterAtPosition(all: List<Character>, lang: Lang, position: Int): Character {
-    val mid = all.size / 2
-    return if (lang == Lang.FR) all[position] else all[mid + position]
 }

@@ -16,6 +16,10 @@ object Collections {
     const val USERNAMES = "usernames"
     const val FRIENDS = "friends"
     const val INCOMING_REQUESTS = "incomingRequests"
+    /** Sous-collection users/{uid}/universeStats/{univers} : statistiques de jeu
+     * (parties jouées/gagnées, série, essais moyens...) séparées par univers,
+     * contrairement au pseudo (partagé, resté sur le document users/{uid}). */
+    const val UNIVERSE_STATS = "universeStats"
 }
 
 /** Normalise un pseudo pour la clé d'unicité (insensible à la casse/accents). */
@@ -24,9 +28,17 @@ fun normalizeUsername(username: String): String =
         .replace(Regex("\\p{InCombiningDiacriticalMarks}+"), "")
         .lowercase()
 
-/** Statistiques d'un joueur, stockées sur son document users/{uid}. */
+/** Statistiques d'un joueur, stockées sur son document users/{uid}. L'avatar
+ * (voir StatsRepository.setAvatar) est un personnage/champion du jeu choisi
+ * par le joueur, quel que soit l'univers actif -- il vit sur ce même document
+ * partagé (comme le pseudo), pas dans les stats par univers, pour rester
+ * visible partout (classement, amis) indépendamment de l'univers en cours. */
 data class UserStats(
     val username: String = "",
+    val avatarUniverse: Universe? = null,
+    val avatarImageFolder: String? = null,
+    val avatarImageFile: String? = null,
+    val avatarName: String? = null,
     val gamesPlayed: Int = 0,
     val gamesWon: Int = 0,
     val currentStreak: Int = 0,

@@ -86,6 +86,11 @@ object AuthRepository {
         return result.user ?: error("Connexion impossible")
     }
 
+    /** Envoie l'email de réinitialisation de mot de passe standard de Firebase Auth. */
+    suspend fun sendPasswordReset(email: String) {
+        FirebaseServices.auth.sendPasswordResetEmail(email).await()
+    }
+
     fun signOut() {
         FirebaseServices.auth.signOut()
     }

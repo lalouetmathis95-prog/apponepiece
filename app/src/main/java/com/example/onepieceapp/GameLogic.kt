@@ -5,7 +5,12 @@ enum class CellResult { MATCH, PARTIAL, MISS }
 
 data class GuessCell(val label: String, val value: String, val result: CellResult)
 
-data class GuessRow(val character: Character, val cells: List<GuessCell>, val isWin: Boolean)
+/** [entry] est l'entrée devinée (Character ou Champion selon l'univers en
+ * cours) -- le moteur de jeu commun (GameViewModel, GuessTable...) ne s'en
+ * sert que via l'interface [Guessable] (nom, image...), la comparaison
+ * elle-même reste spécifique à chaque univers (voir compareCharacters /
+ * compareChampions). */
+data class GuessRow(val entry: Guessable, val cells: List<GuessCell>, val isWin: Boolean)
 
 /**
  * Ordre chronologique des arcs, utilisé pour l'indice "Avant/Après". Il existe une
@@ -190,6 +195,8 @@ fun compareCharacters(target: Character, guess: Character, lang: Lang): GuessRow
 /**
  * Les 3 indices du haut (arc, affiliation, fruit) avec leur texte de déblocage
  * progressif, fidèle au système "prochain indice dans N essais" du jeu original.
+ * Spécifique à One Piece : League of Legends n'a pas cet équivalent pour l'instant
+ * (voir [GameViewModel.topHints], qui renvoie null pour cet univers).
  */
 data class TopHints(val arcHint: String, val affiliationHint: String, val fruitHint: String)
 

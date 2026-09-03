@@ -26,6 +26,20 @@ service cloud.firestore {
           && (request.auth.uid == uid || request.auth.uid == friendUid);
         allow update: if false;
       }
+
+      // Statistiques de jeu, séparées par univers (parties jouées/gagnées, série
+      // en cours, date du dernier quotidien gagné...). Lisible par tout joueur
+      // connecté (nécessaire pour afficher le classement entre amis, voir
+      // FriendsRepository.fetchLeaderboard), mais seul le propriétaire peut
+      // écrire les siennes. SANS cette règle, ce sous-document tombe sous le
+      // refus par défaut de Firestore (les règles ne sont PAS héritées du
+      // match parent /users/{uid} vers ses sous-collections) : c'était la
+      // cause des séries et du quotidien qui ne se mettaient jamais à jour,
+      // toutes les écritures échouant silencieusement (permission-denied).
+      match /universeStats/{universeId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && request.auth.uid == uid;
+      }
     }
 
     // Table d'unicité des pseudos : lecture ouverte (recherche d'amis), création

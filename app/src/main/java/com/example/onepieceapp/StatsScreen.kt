@@ -1,9 +1,14 @@
 package com.example.onepieceapp
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -14,6 +19,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -91,27 +97,62 @@ private fun SectionTitle(text: String, pirateFont: FontFamily, modifier: Modifie
 private fun ProfileTab(viewModel: GameViewModel, pirateFont: FontFamily) {
     val s = viewModel.strings
     val stats = viewModel.userStats
+    var showAvatarPicker by remember { mutableStateOf(false) }
 
-    Column {
+    if (showAvatarPicker) {
+        AvatarPickerDialog(viewModel, pirateFont) { showAvatarPicker = false }
+    }
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+        // Le petit badge crayon en coin remplace le texte d'indication qu'il y
+        // avait avant sous l'avatar : plus discret, et un avatar rond avec un
+        // badge d'édition est un pattern immédiatement reconnaissable (comme
+        // sur la plupart des apps), pas besoin de l'expliquer par un texte.
+        Box(contentAlignment = Alignment.BottomEnd) {
+            AvatarThumbnail(
+                stats.avatarImageFolder,
+                stats.avatarImageFile,
+                size = 72.dp,
+                modifier = Modifier.clickable { showAvatarPicker = true }
+            )
+            Box(
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .background(HeaderRed)
+                    .border(2.dp, ParchmentCard, CircleShape)
+                    .clickable { showAvatarPicker = true },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Filled.Edit,
+                    contentDescription = s.changeAvatarHint,
+                    tint = Color.White,
+                    modifier = Modifier.size(13.dp)
+                )
+            }
+        }
+        Spacer(Modifier.height(10.dp))
         if (stats.username.isNotBlank()) {
             Text(
                 stats.username,
                 fontFamily = pirateFont,
                 fontWeight = FontWeight.Bold,
-                fontSize = 17.sp,
-                color = HeaderRed,
-                modifier = Modifier.padding(bottom = 10.dp)
+                fontSize = 18.sp,
+                color = HeaderRed
             )
         } else {
             SetUsernameForm(viewModel, pirateFont)
-            Spacer(Modifier.height(12.dp))
         }
-        StatRow(s.gamesPlayed, stats.gamesPlayed.toString())
-        StatRow(s.gamesWon, stats.gamesWon.toString())
-        StatRow(s.winRate, "${stats.winRatePercent}%")
-        StatRow(s.currentStreak, stats.currentStreak.toString())
-        StatRow(s.maxStreak, stats.maxStreak.toString())
-        StatRow(s.averageGuesses, "%.1f".format(stats.averageGuesses))
+        Spacer(Modifier.height(18.dp))
+        Column(Modifier.fillMaxWidth()) {
+            StatRow(s.gamesPlayed, stats.gamesPlayed.toString())
+            StatRow(s.gamesWon, stats.gamesWon.toString())
+            StatRow(s.winRate, "${stats.winRatePercent}%")
+            StatRow(s.currentStreak, stats.currentStreak.toString())
+            StatRow(s.maxStreak, stats.maxStreak.toString())
+            StatRow(s.averageGuesses, "%.1f".format(stats.averageGuesses))
+        }
     }
 }
 
@@ -122,13 +163,7 @@ private fun SetUsernameForm(viewModel: GameViewModel, pirateFont: FontFamily) {
     var busy by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
 
-    Column(modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)) {
-        Text(
-            s.chooseUsernamePrompt,
-            fontSize = 13.sp,
-            color = Color(0xFF5A5A5A),
-            modifier = Modifier.padding(bottom = 6.dp)
-        )
+    Column(modifier = Modifier.fillMaxWidth()) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             OutlinedTextField(
                 value = username,
@@ -249,7 +284,11 @@ private fun FriendsTab(viewModel: GameViewModel, pirateFont: FontFamily) {
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(friend.username, fontSize = 14.sp, color = Color(0xFF2B2B2B))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        AvatarThumbnail(friend.avatarImageFolder, friend.avatarImageFile, size = 24.dp)
+                        Spacer(Modifier.width(8.dp))
+                        Text(friend.username, fontSize = 14.sp, color = Color(0xFF2B2B2B))
+                    }
                     TextButton(
                         onClick = { viewModel.removeFriend(friend) },
                         colors = ButtonDefaults.textButtonColors(contentColor = Color(0xFF8A8A8A))
@@ -271,6 +310,8 @@ private fun FriendsTab(viewModel: GameViewModel, pirateFont: FontFamily) {
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text("${index + 1}.", modifier = Modifier.padding(end = 6.dp), color = Color(0xFF8A8A8A))
+                    AvatarThumbnail(entry.avatarImageFolder, entry.avatarImageFile, size = 24.dp)
+                    Spacer(Modifier.width(6.dp))
                     if (entry.isMe) {
                         Icon(Icons.Filled.Star, contentDescription = null, tint = ParchmentGold, modifier = Modifier.size(16.dp))
                         Spacer(Modifier.width(4.dp))

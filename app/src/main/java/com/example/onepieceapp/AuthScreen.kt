@@ -24,6 +24,7 @@ import kotlinx.coroutines.delay
 fun AuthScreen(viewModel: GameViewModel, pirateFont: FontFamily) {
     val s = viewModel.strings
     var isSignUp by remember { mutableStateOf(false) }
+    var isResetPassword by remember { mutableStateOf(false) }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var username by remember { mutableStateOf("") }
@@ -58,6 +59,64 @@ fun AuthScreen(viewModel: GameViewModel, pirateFont: FontFamily) {
         Spacer(Modifier.height(24.dp))
 
         Card(colors = CardDefaults.cardColors(containerColor = Color(0xF2FFFFFF))) {
+            if (isResetPassword) {
+                Column(Modifier.padding(20.dp).fillMaxWidth()) {
+                    Text(
+                        s.resetPasswordTitle,
+                        fontFamily = pirateFont,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        modifier = Modifier.padding(bottom = 12.dp)
+                    )
+
+                    if (viewModel.passwordResetSent) {
+                        Text(s.resetPasswordSent(email.trim()), color = Color(0xFF2E7D32))
+                    } else {
+                        Text(
+                            s.resetPasswordMessage,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(bottom = 12.dp)
+                        )
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = { Text(s.emailLabel) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                            modifier = Modifier.fillMaxWidth()
+                        )
+
+                        viewModel.authError?.let { err ->
+                            Text(err, color = Color(0xFFB00020), fontSize = 12.sp, modifier = Modifier.padding(top = 8.dp))
+                        }
+
+                        Spacer(Modifier.height(16.dp))
+
+                        Button(
+                            onClick = { viewModel.sendPasswordReset(email) },
+                            enabled = !viewModel.authBusy && email.isNotBlank(),
+                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7A1F1F)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            if (viewModel.authBusy) {
+                                CircularProgressIndicator(modifier = Modifier.size(18.dp), color = Color.White)
+                            } else {
+                                Text(s.resetPasswordButton, fontFamily = pirateFont)
+                            }
+                        }
+                    }
+
+                    TextButton(
+                        onClick = {
+                            isResetPassword = false
+                            viewModel.clearPasswordResetState()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(s.resetPasswordBack)
+                    }
+                }
+            } else {
             Column(Modifier.padding(20.dp).fillMaxWidth()) {
                 Text(
                     s.authTitle,
@@ -126,12 +185,25 @@ fun AuthScreen(viewModel: GameViewModel, pirateFont: FontFamily) {
                     }
                 }
 
+                if (!isSignUp) {
+                    TextButton(
+                        onClick = {
+                            isResetPassword = true
+                            viewModel.clearPasswordResetState()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(s.forgotPassword)
+                    }
+                }
+
                 TextButton(
                     onClick = { isSignUp = !isSignUp },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(if (isSignUp) s.switchToLogin else s.switchToSignUp)
                 }
+            }
             }
         }
     }
